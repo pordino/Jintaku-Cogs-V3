@@ -119,7 +119,7 @@ class BooruCore:
         # Fetch all the stuff!
         async with ctx.typing():
             all_data = await asyncio.gather(*(getattr(self, f"fetch_{board}")(ctx, tag) for board in boards))
-        data = [item for board_data in all_data for item in board_data]
+        data = [item for board_data in all_data if board_data is not None for item in board_data]
 
         # Filter data without using up requests space
         data = await self.filter_posts(ctx, data)
@@ -161,7 +161,7 @@ class BooruCore:
         log.debug(tag)
 
         # Checks common to see if any ratings are there
-        ratings = {"rating:safe", "rating:explicit", "rating:questionable", "rating:none"}
+        ratings = {"rating:safe", "rating:explicit", "rating:questionable", "rating:none", "rating:s", "rating:q", "rating:e"}
         if not ratings & tag:
             tag.add("rating:safe")
 
@@ -178,7 +178,8 @@ class BooruCore:
                 await ctx.send("You cannot use booru in sfw channels")
                 return
 
-            if "rating:explicit" in tag or "rating:questionable" in tag or not ratings & tag:
+            # Checks if explicit or questionable or qe
+            if "rating:explicit" in tag or "rating:questionable" in tag or "rating:q" in tag or "rating:e" in tag:
                 await ctx.send("You cannot post nsfw content in sfw channels")
                 return
 
@@ -205,18 +206,25 @@ class BooruCore:
         filters = global_filters | guild_filters
         nsfw_filters = global_nsfw_filters | guild_nsfw_filters
 
-        # Set variable because
+        # Set variable because it needs to be set before it can be appended to
         filtered_data = []
 
         # Filter the content
         for booru in data:
             booru_tags = set(booru["tags"].split())
 
-            if booru["rating"] in "sqe":
-                if filters & booru_tags or (booru["rating"] != "s" and nsfw_filters & booru_tags):
+            # Checks if rating is safe then if filters match with tags
+            if booru["rating"] == "s" or booru["rating"] =="safe":
+                if filters & booru_tags:
                     continue
+            # Checks if rating is explicit or questions then if nsfw fitlers match with tags
+            if booru["rating"] in "qe" or booru["rating"] == "questionable" or booru["rating"] == "explicit":
+                if nsfw_filters & booru_tags:
+                    continue
+            # Checks if deleted
             if booru.get("is_deleted"):
                 continue
+            # Another check for Danbooru because sometimes there's no file_url
             if booru["provider"] == "Danbooru" and "file_url" not in booru:
                 continue
 
@@ -418,17 +426,6 @@ class BooruCore:
             all_content.extend(content)
         return all_content
 
-    @cached(ttl=600, cache=SimpleMemoryCache, key="nekos_nsfw_trap")
-    async def fetch_nekos_nsfw_trap(self, ctx, tag):  # Nekos nsfw trap fetcher
-        life = boorusources.nekos_nsfw_trap
-        all_content = []
-        for nekos in life:
-            urlstr = "https://api.nekos.dev/api/v3/" + nekos + "/?count=20"
-            log.debug(urlstr)
-            content = await self.fetch_from_nekos(urlstr, "explicit", "Nekos.life")
-            all_content.extend(content)
-        return all_content
-
     @cached(ttl=600, cache=SimpleMemoryCache, key="nekos_nsfw_kitsune")
     async def fetch_nekos_nsfw_kitsune(self, ctx, tag):  # Nekos nsfw kitsune fetcher
         life = boorusources.nekos_nsfw_kitsune
@@ -568,7 +565,7 @@ class BooruCore:
                 log.debug("Pruned by exception, error below:")
                 log.debug(ex)
                 content = []
-        if not content or content == [] or content is None or (type(content) is dict and "success" in content.keys() and content["success"] == False):
+        if not content or content == [] or content is None or (type(content) is dict and "error" in content.keys()):
             content = []
             return content
         else:
@@ -840,17 +837,6 @@ class BooruCore:
             all_content.extend(content)
         return all_content
 
-    @cached(ttl=3600, cache=SimpleMemoryCache, key="trap")
-    async def fetch_trap(self, ctx, tag):  # trap fetcher
-        subreddits = boorusources.trap
-        all_content = []
-        for subreddit in subreddits:
-            urlstr = "https://reddit.com/r/" + subreddit + "/new.json?limit=100"
-            log.debug(urlstr)
-            content = await self.fetch_from_reddit(urlstr, "explicit", "Reddit")
-            all_content.extend(content)
-        return all_content
-
     @cached(ttl=3600, cache=SimpleMemoryCache, key="wild")
     async def fetch_wild(self, ctx, tag):  # wild fetcher
         subreddits = boorusources.wild
@@ -879,6 +865,9 @@ class BooruCore:
         async with self.session.get(urlstr, headers={'User-Agent': "Booru (https://github.com/Jintaku/Jintaku-Cogs-V3)"}) as resp:
             try:
                 content = await resp.json(content_type=None)
+                if provider == "e621":
+                    content = content["posts"]
+                    log.debug(content)
             except (ValueError, aiohttp.ContentTypeError) as ex:
                 log.debug("Pruned by exception, error below:")
                 log.debug(ex)
@@ -887,7 +876,10 @@ class BooruCore:
             content = []
             return content
         else:
+            assigned_content = []
             for item in content:
+                if item.get("id") is None:
+                    continue
                 if provider == "Konachan":
                     item["post_link"] = "https://konachan.com/post/show/" + str(item["id"])
                 elif provider == "Gelbooru":
@@ -909,8 +901,13 @@ class BooruCore:
                     item["author"] = item["owner"]
                 elif provider == "e621":
                     item["post_link"] = "https://e621.net/post/show/" + str(item["id"])
+                    item["file_url"] = item["file"]["url"]
+                    item["author"] = "Not Available"
+                    item["tags"] = " ".join(item["tags"]["general"] + item["tags"]["species"] + item["tags"]["character"] + item["tags"]["copyright"])
+                    item["score"] = item["score"]["total"]
                 item["provider"] = provider
-        return content
+                assigned_content.append(item)
+        return assigned_content
 
     @cached(ttl=3600, cache=SimpleMemoryCache)
     async def fetch_yan(self, ctx, tags):  # Yande.re fetcher

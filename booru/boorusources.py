@@ -22,14 +22,13 @@ milf = ["amateur_milfs", "GroupOfNudeMILFs", "ChocolateMilf", "milf", "Milfie", 
 public = ["RealPublicNudity", "FlashingAndFlaunting", "FlashingGirls", "PublicFlashing", "Unashamed", "OutsideNude", "NudeInPublic", "publicplug", "casualnudity"]
 rule34 = ["rule34", "rule34cartoons", "Rule_34", "Rule34LoL", "AvatarPorn", "Overwatch_Porn", "Rule34Overwatch", "WesternHentai"]
 thigh = ["Thighs", "ThickThighs", "thighhighs", "Thigh", "leggingsgonewild"]
-trap = ["Transex", "DeliciousTraps", "traps", "trapgifs", "GoneWildTrans", "SexyShemales", "Shemales", "shemale_gifs", "Shemales", "ShemalesParadise", "Shemale_Big_Cock", "ShemaleGalleries"]
 wild = ["gonewild", "GWNerdy", "dirtysmall", "MyCalvins", "AsiansGoneWild", "GoneWildSmiles", "gonewildcurvy", "BigBoobsGonewild", "gonewildcouples", "gonewildcolor", "PetiteGoneWild", "GWCouples", "BigBoobsGW", "altgonewild", "LabiaGW", "UnderwearGW", "JustTheTop", "TallGoneWild", "LingerieGW", "Swingersgw", "workgonewild"]
 redhead = ["redheadxxx", "redheads", "ginger", "FireBush", "FreckledRedheads", "redhead", "thesluttyginger", "RedheadGifs"]
 
 # OG Boorus sources
 
 dan = "https://danbooru.donmai.us/posts.json?limit=200&tags="
-e621 = "https://e621.net/post/index.json?limit=320&tags="
+e621 = "https://e621.net/posts.json?limit=320&tags="
 r34 = "https://rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&limit=1000&tags="
 kon = "https://konachan.com/post.json?limit=1000&tags="
 safe = "https://safebooru.org/index.php?page=dapi&s=post&q=index&json=1&limit=1000&tags="
@@ -53,7 +52,6 @@ nekos_nsfw_spank = ["images/nsfw/gif/spank"]
 nekos_nsfw_cunnilingus = ["images/nsfw/gif/kuni"]
 nekos_nsfw_bdsm = ["images/nsfw/img/bdsm_lewd"]
 nekos_nsfw_piercings = ["images/nsfw/img/piersing_lewd", "images/nsfw/img/piersing_ero"]
-nekos_nsfw_trap = ["images/nsfw/img/trap_lewd", "images/nsfw/img/futanari_lewd"]
 nekos_nsfw_kitsune = ["images/nsfw/img/kitsune_lewd", "images/nsfw/img/kitsune_ero"]
 nekos_nsfw_holo = ["images/nsfw/img/holo_lewd", "images/nsfw/img/holo_ero"]
 nekos_nsfw_femdom = ["images/nsfw/img/femdom_lewd"]
